@@ -3,6 +3,5 @@
 
 ```
 pip install ansible
-apt install -y sshpass 
-ansible-vault encrypt secrets.yaml
+apt install -y sshpass
 ```
