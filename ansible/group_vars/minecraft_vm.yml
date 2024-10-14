@@ -1,0 +1,6 @@
+packages:
+  - podman
+  - git
+paths:
+  minecraftum_path: "/opt/minecraftum/repo"
+  data_path: "/opt/minecraftum/data"
