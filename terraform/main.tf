@@ -16,7 +16,7 @@ provider "proxmox" {
 
 resource "proxmox_vm_qemu" "arch-karim-nodes" {
   agent       = 1
-  count       = 3
+  count       = var.vm_count
   name        = "arch-karim-nodes-${count.index + 1}"
   target_node = var.proxmox_node
   bios        = "ovmf" # UEFI
@@ -32,7 +32,7 @@ resource "proxmox_vm_qemu" "arch-karim-nodes" {
     ide {
       ide2 {
         cdrom {
-          iso = "local:iso/archlinux-2024.11.28-x86_64.iso"
+          iso = var.iso
         }
       }
     }
@@ -61,5 +61,5 @@ resource "proxmox_vm_qemu" "arch-karim-nodes" {
   }
 
   sshkeys   = var.sshkey
-  
+
 }

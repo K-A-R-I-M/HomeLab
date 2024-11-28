@@ -5,3 +5,5 @@ proxmox_node = ""
 pm_template = ""
 sshkey = ""
 private_key_path = ""
+vm_count = 3
+iso = ""
