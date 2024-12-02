@@ -15,10 +15,6 @@ variable "proxmox_node" {
   type = string
 }
 
-variable "pm_template" {
-  type = string
-}
-
 variable "sshkey" {
   type = string
 }

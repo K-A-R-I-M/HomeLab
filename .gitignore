@@ -1,4 +1,4 @@
 hosts_local
-general_local.tfvars
+general_local*
 .terraform*
 terraform.tfstate*

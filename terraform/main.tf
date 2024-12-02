@@ -17,7 +17,7 @@ provider "proxmox" {
 resource "proxmox_vm_qemu" "arch-karim-nodes" {
   agent       = 1
   count       = var.vm_count
-  name        = "arch-karim-nodes-${count.index + 1}"
+  name        = "karim-nodes-${count.index + 1}"
   target_node = var.proxmox_node
   bios        = "ovmf" # UEFI
   onboot      = true
