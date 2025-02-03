@@ -1,0 +1,69 @@
+- name: Check if user exists
+  ansible.builtin.getent:
+    database: passwd
+    key: "{{ github_runner.user }}"
+
+- name: Create a projects directory if it does not exist
+  ansible.builtin.file:
+    path: "{{ github_runner.projects_folder }}"
+    state: directory
+    mode: '0755'
+
+- name: create each project directory if it does not exist
+  ansible.builtin.file:
+    path: "{{ github_runner.projects_folder }}/{{ item.name }}"
+    state: directory
+    mode: '0755'
+  loop: "{{ github_runner.projects }}"
+
+############################
+# DOWNLOAD RUNNER RUNTIME TOOL
+############################
+
+- name: Get the latest GitHub Actions runner version
+  uri:
+    url: "{{ github_runner.github_runner_url }}"
+    method: GET
+    return_content: yes
+  register: github_runner_release
+  retries: 3
+  delay: 10
+  until: github_runner_release.status == 200
+
+- name: Download the latest GitHub runner tarball
+  get_url:
+    url: "{{ github_runner_release.json.assets[0].browser_download_url }}"
+    dest: "{{ github_runner.projects_folder }}/actions-runner.tar.gz"
+    mode: '0644'
+  register: download_runner
+
+############################
+## For each project runner
+############################
+
+- name: Set up GitHub Actions runner for each configured runner
+  block:
+    
+    - name: Extract the GitHub runner tarball
+      unarchive:
+        src: "{{ github_runner.projects_folder }}/{{ item.name }}/actions-runner.tar.gz"
+        dest: "{{ github_runner.projects_folder }}/{{ item.name }}"
+        remote_src: yes
+      when: download_runner.changed
+    
+    - name: Configure the GitHub runner
+      command: "{{ github_runner.projects_folder }}/{{ item.name }}/config.sh --url {{ item.repo_url }} --token {{ item.token }}"
+
+    - name: Create the GitHub Actions runner systemd service
+      template:
+        src: "github-runner@.service.j2"
+        dest: "/etc/systemd/system/github-runner@{{ item.name }}.service"
+
+    - name: Start and enable the GitHub runner service
+      systemd:
+        name: "github-runner@{{ item.name }}"
+        state: started
+        enabled: yes
+ 
+  with_items: "{{ github_runner.projects }}"
+  when: item.token is defined

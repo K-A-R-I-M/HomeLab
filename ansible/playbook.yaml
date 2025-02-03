@@ -1,7 +1,17 @@
-- name: Installation de serveur Minecraft
-  hosts: minecraft_vm
+# - name: Installation Minecraft server
+#   hosts: minecraft_vm
+#   remote_user: root
+
+#   roles:
+#     - packages
+#     - deploy_minecraft
+
+- name: Installation runner server
+  hosts: runner
   remote_user: root
 
   roles:
+    - users
     - packages
-    - deploy_minecraft
+    - github_runner
+    - devops

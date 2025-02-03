@@ -1,6 +1,23 @@
-- name: Install {{ packages }}
-  ansible.builtin.apt:
+- name: Install Packages with apt
+  apt:
     name: "{{ item }}"
     update_cache: true
     state: present
-  loop: "{{ packages }}"
+  loop: "{{ packages_apt }}"
+  when: packages_apt is defined
+
+- name: Check and install snap packages
+  block:
+    - name: Ensure snapd is installed (Debian/Ubuntu)
+      apt:
+        name: snapd
+        state: present
+      when: ansible_os_family == "Debian"
+
+    - name: Install Packages with snap
+      snap:
+        name: "{{ item }}"
+        state: present
+      loop: "{{ packages_snap }}"
+
+  when: packages_snap is defined

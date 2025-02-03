@@ -1,0 +1,62 @@
+###### MicroK8s
+- name: Wait for MicroK8s to be ready
+  shell: "microk8s status --wait-ready"
+  retries: 10
+  delay: 6
+  register: microk8s_status
+  until: microk8s_status.rc == 0
+
+- name: Enable the MicroK8s registry addon
+  shell: microk8s enable registry argocd dns storage ingress cert-manager
+  args:
+    warn: false
+
+###### Podman
+- name: Backup existing registries.conf if exists
+  copy:
+    src: "{{ devops.podman_registries_conf }}"
+    dest: "{{ devops.podman_registries_conf }}.bak"
+
+- name: Ensure Podman registries configuration includes insecure registry
+  blockinfile:
+    path: "{{ devops.podman_registries_conf }}"
+    marker: "# {mark} ANSIBLE MANAGED BLOCK: Insecure Registries"
+    block: |
+      [registries.insecure]
+      registries = ['{{ devops.registry_host }}:{{ devops.registry_port }}']
+
+###### Cert Manager
+- name: Create Cert Manager dir
+  file:
+    path: /home/{{ devops.user }}/certmanager
+    state: directory
+
+- name: Copy Cert Manager deploy file
+  template:
+    src: cert-issuer.yml.j2
+    dest: /home/{{ devops.user }}/certmanager/cert-issuer.yml
+
+- name: Setup cert
+  shell:
+    chdir: /home/{{ devops.user }}/certmanager/
+    cmd: microk8s kubectl apply -f cert-issuer.yml
+
+###### Argo
+- name:
+  block:
+    - name: Create ArgoCD dirs
+      file:
+        path: /home/{{ devops.user }}/argocd/{{ item.name }}
+        state: directory
+
+    - name: Create ArgoCD config app files
+      template:
+        src: argo-app.yml.j2
+        dest: /home/{{ devops.user }}/argocd/{{ item.name }}/argo-app.yml
+
+    - name: Setup ArgoCD app
+      shell:
+        chdir: /home/{{ devops.user }}/argocd/{{ item.name }}
+        cmd: microk8s kubectl apply -f argo-app.yaml
+
+  with_items: "{{ devops.apps }}"
