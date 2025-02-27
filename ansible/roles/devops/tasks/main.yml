@@ -39,11 +39,11 @@
       [registries.insecure]
       registries = ['{{ devops.registry_host }}:{{ devops.registry_port }}']
 
-# ###### ArgoCD apps
-# - name: Setup ArgoCD apps
-#   include_tasks:
-#     file: argocd-setup.yml
-#   loop: "{{ devops.apps }}"
+###### ArgoCD apps
+- name: Setup ArgoCD apps
+  include_tasks:
+    file: argocd-setup.yml
+  loop: "{{ devops.apps }}"
 
 ###### ArgoCD Config
 - name: Copy ArgoCD config file
