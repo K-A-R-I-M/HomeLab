@@ -1,0 +1,31 @@
+# Redirect HTTP to HTTPS
+server {
+    listen 80;
+    server_name {{ reverse_proxy.domain }};
+    return 301 https://$host$request_uri;
+}
+
+# HTTPS server block
+server {
+    listen 443 ssl;
+    server_name {{ reverse_proxy.domain }};
+
+    ssl_certificate /etc/letsencrypt/live/{{ reverse_proxy.domain }}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/{{ reverse_proxy.domain }}/privkey.pem;
+
+    location {{ item.path }} {
+        # Proxy pass to your MicroK8s Ingress controller
+        proxy_pass http://{{ svcIp.stdout }}:{{ item.port }};
+
+        # Preserve original request headers
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+
+        # Support for WebSockets (if needed)
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+}
