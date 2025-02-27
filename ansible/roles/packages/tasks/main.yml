@@ -17,6 +17,7 @@
     - name: Install Packages with snap
       snap:
         name: "{{ item }}"
+        classic: yes # for microk8s certbot
         state: present
       loop: "{{ packages_snap }}"
 

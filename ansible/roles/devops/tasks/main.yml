@@ -1,21 +1,35 @@
+###### Packages Needed
+##  git
+##  podman
+##  microk8s
+
 ###### MicroK8s
 - name: Wait for MicroK8s to be ready
-  shell: "microk8s status --wait-ready"
+  shell: "/snap/bin/microk8s status --wait-ready"
   retries: 10
   delay: 6
   register: microk8s_status
   until: microk8s_status.rc == 0
 
-- name: Enable the MicroK8s registry addon
-  shell: microk8s enable registry argocd dns storage ingress cert-manager
-  args:
-    warn: false
+- name: Enable the MicroK8s addons
+  shell: 
+    cmd: /snap/bin/microk8s enable {{ item }}
+  loop:
+    - registry
+    - community 
+    - argocd 
+    - dns 
+    - ingress
+    - metallb:10.64.140.1-10.64.140.100
+
+- name: Pass ArgoCD service to LoadBalancer type
+  shell: 
+    cmd: "/snap/bin/microk8s kubectl patch svc argo-cd-argocd-server -n argocd -p '{\"spec\": {\"type\": \"LoadBalancer\"}}'"
 
 ###### Podman
 - name: Backup existing registries.conf if exists
-  copy:
-    src: "{{ devops.podman_registries_conf }}"
-    dest: "{{ devops.podman_registries_conf }}.bak"
+  shell:
+    cmd: "cp {{ devops.podman_registries_conf }} {{ devops.podman_registries_conf }}.bak"
 
 - name: Ensure Podman registries configuration includes insecure registry
   blockinfile:
@@ -25,38 +39,49 @@
       [registries.insecure]
       registries = ['{{ devops.registry_host }}:{{ devops.registry_port }}']
 
-###### Cert Manager
-- name: Create Cert Manager dir
-  file:
-    path: /home/{{ devops.user }}/certmanager
-    state: directory
+# ###### ArgoCD apps
+# - name: Setup ArgoCD apps
+#   include_tasks:
+#     file: argocd-setup.yml
+#   loop: "{{ devops.apps }}"
 
-- name: Copy Cert Manager deploy file
-  template:
-    src: cert-issuer.yml.j2
-    dest: /home/{{ devops.user }}/certmanager/cert-issuer.yml
+###### ArgoCD Config
+- name: Copy ArgoCD config file
+  copy:
+    src: argocd-cmd-params-cm.yml
+    dest: /home/{{ devops.user }}/argocd/argocd-cmd-params-cm.yml
 
-- name: Setup cert
+- name: Setup ArgoCD config
   shell:
-    chdir: /home/{{ devops.user }}/certmanager/
-    cmd: microk8s kubectl apply -f cert-issuer.yml
+    chdir: /home/{{ devops.user }}/argocd/ 
+    cmd: /snap/bin/microk8s kubectl apply -f argocd-cmd-params-cm.yml
 
-###### Argo
-- name:
-  block:
-    - name: Create ArgoCD dirs
-      file:
-        path: /home/{{ devops.user }}/argocd/{{ item.name }}
-        state: directory
+- name: Restart ArgoCD deployment for config changes
+  shell:
+    cmd: /snap/bin/microk8s kubectl rollout restart deployment argo-cd-argocd-server -n argocd
 
-    - name: Create ArgoCD config app files
-      template:
-        src: argo-app.yml.j2
-        dest: /home/{{ devops.user }}/argocd/{{ item.name }}/argo-app.yml
+###### ArgoCD CLI
+- name: Copy ArgoCD CLI setup script
+  copy:
+    src: get-argocd-cli.sh
+    dest: /home/{{ devops.user }}/argocd/get-argocd-cli.sh
 
-    - name: Setup ArgoCD app
-      shell:
-        chdir: /home/{{ devops.user }}/argocd/{{ item.name }}
-        cmd: microk8s kubectl apply -f argo-app.yaml
+- name: Install ArgoCD CLI from Setup script
+  shell:
+    chdir: /home/{{ devops.user }}/argocd/
+    cmd: bash ./get-argocd-cli.sh
 
-  with_items: "{{ devops.apps }}"
+# ###### ArgoCD Ingress
+# - name: Setup Certs Secrets
+#   shell:
+#     cmd: /snap/bin/microk8s kubectl -n argocd create secret tls tls-secret --cert=/etc/letsencrypt/live/{{ reverse_proxy.domain }}/fullchain.pem --key=/etc/letsencrypt/live/{{ reverse_proxy.domain }}/privkey.pem &> /dev/null
+
+# - name: Create ArgoCD ingress file
+#   template:
+#     src: argocd-server-ingress.yml.j2
+#     dest: /home/{{ devops.user }}/argocd/argocd-server-ingress.yml
+
+# - name: Apply ArgoCD ingress
+#   shell:
+#     chdir: /home/{{ devops.user }}/argocd/
+#     cmd: /snap/bin/microk8s kubectl apply -f argocd-server-ingress.yml

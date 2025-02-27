@@ -1,0 +1,29 @@
+- name: Create ArgoCD apps dirs
+  file:
+    path: /home/{{ devops.user }}/argocd/{{ item.name }}
+    state: directory
+    owner: "{{ devops.user }}"
+    group: "{{ devops.user }}"
+
+- name: Create ArgoCD config app files
+  template:
+    src: argo-app.yml.j2
+    dest: /home/{{ devops.user }}/argocd/{{ item.name }}/argo-app.yml
+    owner: "{{ devops.user }}"
+    group: "{{ devops.user }}"
+
+- name: Setup ArgoCD app
+  shell:
+    chdir: /home/{{ devops.user }}/argocd/{{ item.name }}
+    cmd: /snap/bin/microk8s kubectl apply -f argo-app.yml
+
+- name: Check ssh key files exists
+  stat:
+    path: /home/{{ devops.user }}/argocd/{{ item.name }}/argocd_deploy_key
+  register: stat_result
+
+- name: Generate an ssh key
+  shell:
+    chdir: /home/{{ devops.user }}/argocd/{{ item.name }}
+    cmd: ssh-keygen -t rsa -b 4096 -C "{{ item.name }}argocd@{{ devops.domain }}" -f argocd_deploy_key -q -N ""
+  when: not stat_result.stat.exists

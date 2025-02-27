@@ -1,19 +1,27 @@
+###### Packages Needed
+##  git
+##  podman
+
 - name: Check if user exists
-  ansible.builtin.getent:
+  getent:
     database: passwd
     key: "{{ github_runner.user }}"
 
 - name: Create a projects directory if it does not exist
-  ansible.builtin.file:
+  file:
     path: "{{ github_runner.projects_folder }}"
     state: directory
     mode: '0755'
+    owner: "{{ github_runner.user }}"
+    group: "{{ github_runner.user }}"
 
 - name: create each project directory if it does not exist
-  ansible.builtin.file:
+  file:
     path: "{{ github_runner.projects_folder }}/{{ item.name }}"
     state: directory
     mode: '0755'
+    owner: "{{ github_runner.user }}"
+    group: "{{ github_runner.user }}"
   loop: "{{ github_runner.projects }}"
 
 ############################
@@ -32,7 +40,7 @@
 
 - name: Download the latest GitHub runner tarball
   get_url:
-    url: "{{ github_runner_release.json.assets[0].browser_download_url }}"
+    url: "https://github.com/actions/runner/releases/download/{{ github_runner_release.json.name }}/actions-runner-linux-x64-{{ github_runner_release.json.name | replace('v','') }}.tar.gz"
     dest: "{{ github_runner.projects_folder }}/actions-runner.tar.gz"
     mode: '0644'
   register: download_runner
@@ -42,28 +50,13 @@
 ############################
 
 - name: Set up GitHub Actions runner for each configured runner
-  block:
-    
-    - name: Extract the GitHub runner tarball
-      unarchive:
-        src: "{{ github_runner.projects_folder }}/{{ item.name }}/actions-runner.tar.gz"
-        dest: "{{ github_runner.projects_folder }}/{{ item.name }}"
-        remote_src: yes
-      when: download_runner.changed
-    
-    - name: Configure the GitHub runner
-      command: "{{ github_runner.projects_folder }}/{{ item.name }}/config.sh --url {{ item.repo_url }} --token {{ item.token }}"
-
-    - name: Create the GitHub Actions runner systemd service
-      template:
-        src: "github-runner@.service.j2"
-        dest: "/etc/systemd/system/github-runner@{{ item.name }}.service"
-
-    - name: Start and enable the GitHub runner service
-      systemd:
-        name: "github-runner@{{ item.name }}"
-        state: started
-        enabled: yes
- 
-  with_items: "{{ github_runner.projects }}"
+  include_tasks:
+    file: runners-config.yml
+  loop: "{{ github_runner.projects }}"
   when: item.token is defined
+
+###### Podman
+
+- name: Setup Podman config
+  shell:
+    cmd: sudo loginctl enable-linger {{ github_runner.user }}

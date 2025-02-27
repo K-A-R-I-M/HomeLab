@@ -1,15 +1,13 @@
-- name: Create users with a home directory
-  ansible.builtin.user:
-    name: "{{ item.name }}"
-    group: "{{ item.name }}"
-    create_home: yes
-  loop: "{{ users }}"
-
 - name: Ensure users groups exists
-  ansible.builtin.group:
+  group:
     name: "{{ item }}"
     state: present
+  loop: "{{ users | map(attribute='groups') | flatten }}"
+
+- name: Create users with a home directory
+  user:
+    name: "{{ item.name }}"
+    group: "{{ item.name }}"
+    shell: /bin/bash
+    create_home: yes
   loop: "{{ users }}"
-  loop_control:
-    loop_var: user
-  with_items: "{{ user.groups }}"
