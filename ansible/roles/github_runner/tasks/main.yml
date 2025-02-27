@@ -15,7 +15,7 @@
     owner: "{{ github_runner.user }}"
     group: "{{ github_runner.user }}"
 
-- name: create each project directory if it does not exist
+- name: Create each project directory if it does not exist
   file:
     path: "{{ github_runner.projects_folder }}/{{ item.name }}"
     state: directory

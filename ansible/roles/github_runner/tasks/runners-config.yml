@@ -1,0 +1,32 @@
+- name: Extract the GitHub runner tarball
+  unarchive:
+    src: "{{ github_runner.projects_folder }}/actions-runner.tar.gz"
+    dest: "{{ github_runner.projects_folder }}/{{ item.name }}"
+    remote_src: yes
+  when: download_runner.changed
+
+- name: Chown GitHub runner folder
+  shell: 
+    cmd: "chown -R {{ github_runner.user }}:{{ github_runner.user }} {{ github_runner.projects_folder }}/{{ item.name }}"
+
+- name: Check run.sh already exists
+  stat:
+    path: "{{ github_runner.projects_folder }}/{{ item.name }}/run.sh"
+  register: stat_result
+
+- name: Configure the GitHub runner
+  shell: 
+    chdir: "{{ github_runner.projects_folder }}/{{ item.name }}"
+    cmd: "sudo -u {{ github_runner.user }} ./config.sh  --unattended --url {{ item.repo_url_config }} --token {{ item.token }} --name {{ github_runner.runner_name }}"
+  when: not stat_result.stat.exists
+
+- name: Create the GitHub Actions runner systemd service
+  template:
+    src: "github-runner.service.j2"
+    dest: "/etc/systemd/system/github-runner@{{ item.name }}.service"
+
+- name: Start and enable the GitHub runner service
+  systemd:
+    name: "github-runner@{{ item.name }}"
+    state: started
+    enabled: yes
