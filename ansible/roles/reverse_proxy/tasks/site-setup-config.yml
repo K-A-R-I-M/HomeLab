@@ -8,10 +8,13 @@
     cmd: /bin/bash -c "if [[ '{{ item.name }}' == 'argocd' ]]; then echo argocd; else echo default; fi"
   register: svcNamespace
 
-- name: Get Ingress Controller IP
+- name: Get Service IP
   shell:
     cmd: /snap/bin/microk8s kubectl get svc {{ svcName.stdout }} -n {{ svcNamespace.stdout }} -o jsonpath='{.status.loadBalancer.ingress[0].ip}'
+  retries: 10
+  delay: 6
   register: svcIp
+  until: svcIp.rc == 0
 
 - name: Create Nginx Conf file
   template:

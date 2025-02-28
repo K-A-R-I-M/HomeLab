@@ -19,7 +19,7 @@
     - community 
     - argocd 
     - dns 
-    - ingress
+    # - ingress
     - metallb:10.64.140.1-10.64.140.100
 
 - name: Pass ArgoCD service to LoadBalancer type
