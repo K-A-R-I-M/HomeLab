@@ -1,0 +1,14 @@
+[Unit]
+Description=Minecraft Server
+After=network.target
+
+[Service]
+User={{ deploy_minecraftum.user }}
+Group={{ deploy_minecraftum.group }}
+ExecStart=/bin/bash -x {{ deploy_minecraftum.paths.root_path }}/wrapper.sh
+Restart=always
+RestartSec=3
+TimeoutSec=60
+
+[Install]
+WantedBy=multi-user.target
