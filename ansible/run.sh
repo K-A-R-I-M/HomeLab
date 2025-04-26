@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "[DEBUG] check setup status"
-if [[ -z "./venv" ]]; then
+if [ ! -d "./venv" ]; then
     echo "[DEBUG] call setup script"
     ./setup.sh
 fi
