@@ -1,0 +1,9 @@
+[Unit]
+Description=Backup Alpi DB timer
+
+[Timer]
+OnCalendar=weekly
+Persistent=true
+
+[Install]
+WantedBy=timers.target

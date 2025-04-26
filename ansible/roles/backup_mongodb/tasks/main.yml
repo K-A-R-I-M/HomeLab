@@ -1,0 +1,32 @@
+- name: Create backupDB dirs
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop: "{{ backup_mongodb.dirs }}"
+
+- name: Copy backup db script file
+  template:
+    src: backup_db.sh
+    dest: "{{ backup_mongodb.script_dir }}"
+    mode: '0755'
+
+#------ SETUP SERVICE AND TIMER
+- name: Copy backup db service && time file
+  copy:
+    src: "{{ item }}"
+    dest: /etc/systemd/system/ 
+  loop:
+    - backup_db.service
+    - backup_db.timer
+
+- name: Start and enable backup db service
+  systemd:
+    name: "backup_db.timer"
+    state: started
+    enabled: yes
+
+- name: Restart backup db service
+  systemd:
+    name: "backup_db.timer"
+    state: restarted

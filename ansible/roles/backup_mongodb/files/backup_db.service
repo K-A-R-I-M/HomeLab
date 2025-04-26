@@ -1,0 +1,10 @@
+[Unit]
+Description=Backup Alpi DB
+
+[Service]
+Type=oneshot
+User=alpinn
+ExecStart=/bin/bash /home/alpinn/AlpinnInfra/backup/backup_db.sh
+
+[Install]
+WantedBy=multi-user.target

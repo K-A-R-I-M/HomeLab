@@ -7,3 +7,4 @@
     - users
     - packages
     - github_runner
+    - backup_mongodb

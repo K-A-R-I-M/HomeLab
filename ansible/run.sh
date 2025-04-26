@@ -8,4 +8,4 @@ fi
 echo "[DEBUG] activate venv"
 source ./venv/bin/activate
 echo "[DEBUG] run playbooks"
-ansible-playbook -i hosts site.yml -v
+ANSIBLE_CONFIG=./ansible.cfg ansible-playbook -i hosts site.yml

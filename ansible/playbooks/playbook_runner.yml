@@ -1,5 +1,5 @@
 - name: Installation runner server
-  hosts: local_runner
+  hosts: runner
   remote_user: root
   become: yes
 
