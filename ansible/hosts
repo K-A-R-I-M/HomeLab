@@ -1,4 +1,4 @@
-[minecraft_vm]
-test_host
 [runner]
 test_host_runner
+[vps_alp]
+test_host

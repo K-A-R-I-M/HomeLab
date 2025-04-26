@@ -1,0 +1,9 @@
+- name: Installation Alp type server
+  hosts: vps_alp
+  remote_user: root
+  become: yes
+
+  roles:
+    - users
+    - packages
+    - github_runner

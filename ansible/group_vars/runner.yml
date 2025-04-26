@@ -4,12 +4,16 @@ users:
       - user
 
 packages_apt:
+  - net-tools
+  - htop
+  - fail2ban
   - podman
   - git
-  - fail2ban
+  - nginx
 
 packages_snap:
   - microk8s
+  - certbot
 
 devops:
   email: test.test@test.com
@@ -30,3 +34,10 @@ github_runner:
     - name: test
       repo_url: "https://github.com/test/test.git"
       token: ""
+
+deploy_minecraftum:
+  user: runner
+  group: runner
+  paths:
+    root_path: "/opt/minecraftum"
+    data_path: "/opt/minecraftum/data"

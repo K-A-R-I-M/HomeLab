@@ -1,0 +1,12 @@
+- name: Installation runner server
+  hosts: local_runner
+  remote_user: root
+  become: yes
+
+  roles:
+    - users
+    - packages
+    - github_runner
+    - devops
+    - reverse_proxy
+    - deploy_minecraftum
