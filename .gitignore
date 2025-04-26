@@ -3,3 +3,4 @@ local_*
 general_local*
 .terraform*
 terraform.tfstate*
+venv
