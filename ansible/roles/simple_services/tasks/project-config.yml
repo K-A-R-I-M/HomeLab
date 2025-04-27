@@ -1,0 +1,16 @@
+- name: Copy systemd service
+  copy:
+    src: "{{ item.local_systemd_service }}"
+    dest: /etc/systemd/system/{{ item.systemd_service_name }}
+
+- name: Start and enable systemd service
+  systemd:
+    name: "{{ item.systemd_service_name }}"
+    state: started
+    enabled: yes
+    daemon_reload: true
+
+- name: Restart systemd service
+  systemd:
+    name: "{{ item.systemd_service_name }}"
+    state: restarted

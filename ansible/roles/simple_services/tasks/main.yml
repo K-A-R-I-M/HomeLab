@@ -1,0 +1,6 @@
+# needs local_name.service in files dir
+
+- name: Set up project systemd services for each configured project
+  include_tasks:
+    file: project-config.yml
+  loop: "{{ simple_services.projects }}"

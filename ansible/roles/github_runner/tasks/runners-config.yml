@@ -35,6 +35,7 @@
     name: "github-runner@{{ item.name }}"
     state: started
     enabled: yes
+    daemon_reload: true
 
 - name: Restart the GitHub runner service
   systemd:
