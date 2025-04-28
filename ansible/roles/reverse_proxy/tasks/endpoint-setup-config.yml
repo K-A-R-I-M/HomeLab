@@ -1,0 +1,4 @@
+- name: Create Nginx endpoint location Conf file
+  template:
+    src: endpoint.conf.j2
+    dest: /etc/nginx/conf.d/endpoints/{{ item.name }}.conf
