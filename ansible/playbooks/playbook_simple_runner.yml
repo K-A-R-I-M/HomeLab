@@ -1,0 +1,11 @@
+- name: Installation simple runner server
+  hosts: local_runner
+  remote_user: root
+  become: yes
+
+  roles:
+    - users
+    - packages
+    - github_runner
+    - simple_services
+    - reverse_proxy
