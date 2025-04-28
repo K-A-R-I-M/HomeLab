@@ -1,4 +1,8 @@
 [runner]
 test_host_runner
+
+[simple_runner]
+test_host_simple_runner
+
 [vps_alp]
 test_host

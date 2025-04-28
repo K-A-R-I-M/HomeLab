@@ -1,0 +1,50 @@
+users:
+  - name: user
+    groups:
+      - user
+
+
+packages_apt:
+  - net-tools
+  - htop
+  - fail2ban
+  - podman
+  - git
+  - nginx
+
+packages_snap:
+  - certbot
+
+
+github_runner:
+  user: user
+  group: user
+  github_runner_url: "https://api.github.com/repos/actions/runner/releases/latest"
+  projects_folder: "/home/user/projects"
+  projects:
+    - name: test
+      repo_url: "https://github.com/test/test.git"
+      token: ""
+
+backup_mongodb:
+  uri: "mongodb+srv://username:pwd@database.r0dlxmm.mongodb.net/Collection"
+  script_dir: /home/user/userInfra/backup/
+  dirs:
+    - /opt/backup_db
+    - /home/user/userInfra/backup/
+
+
+reverse_proxy:
+  domain: test.fr
+  email: test@test.com
+  endpoints:
+    - name: test-prod
+      path: "/"
+      port: 80
+
+
+simple_services:
+  projects:
+    - name: test
+      local_systemd_service: local_test.service
+      systemd_service_name: test.service

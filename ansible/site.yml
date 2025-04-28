@@ -1,1 +1,2 @@
 - import_playbook: playbooks/playbook_vps_alp.yml
+- import_playbook: playbooks/playbook_simple_runner.yml
