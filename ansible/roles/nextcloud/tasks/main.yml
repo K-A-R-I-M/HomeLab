@@ -1,0 +1,35 @@
+###### Packages Needed
+##  podman
+
+- name: Create dirs if it does not exist
+  file:
+    path: "{{ item.value }}"
+    state: directory
+    mode: '0755'
+    owner: "{{ nextcloud.user }}"
+    group: "{{ nextcloud.group }}"
+  loop: "{{ nextcloud.paths | dict2items }}"
+
+- name: Copy scripts
+  template:
+    src: "{{ item }}"
+    dest: "{{ nextcloud.paths.bin }}/{{ item }}"
+  loop: "{{ nextcloud.bins }}"
+
+
+- name: Copy systemd service
+  template:
+    src: nextcloud.service.j2
+    dest: /etc/systemd/system/nextcloud.service
+
+- name: Start and enable systemd service
+  systemd:
+    name: nextcloud.service
+    state: started
+    enabled: yes
+    daemon_reload: true
+
+- name: Restart systemd service
+  systemd:
+    name: nextcloud.service
+    state: restarted

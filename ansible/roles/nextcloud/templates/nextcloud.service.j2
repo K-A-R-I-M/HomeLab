@@ -1,0 +1,17 @@
+[Unit]
+Description=Official Website For AlpInn by K-A-R-I-M
+After=multi-user.target network-online.target
+
+[Service]
+Type=exec
+User=runner
+ExecStartPre=/bin/bash -x {{ nextcloud.paths.bin }}/prestart.sh
+ExecStart=/usr/bin/bash -x {{ nextcloud.paths.bin }}/start.sh
+StandardOutput=journal
+StandardError=journal
+Restart=always
+RestartSec=2
+
+
+[Install]
+WantedBy=multi-user.target
