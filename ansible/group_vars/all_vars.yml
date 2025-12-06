@@ -6,8 +6,8 @@ nextcloud:
   group: "test"
   image: "nextcloud:31"
   paths:
-    data: "/nextcloud/data/"
-    bin: "/nextcloud/bin/"
+    data: "/nextcloud/data"
+    bin: "/nextcloud/bin"
   bins: 
     - "prestart.sh"
     - "start.sh"
