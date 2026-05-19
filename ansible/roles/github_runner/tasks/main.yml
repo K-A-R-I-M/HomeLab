@@ -54,18 +54,3 @@
     file: runners-config.yml
   loop: "{{ github_runner.projects }}"
   when: item.token is defined
-
-###### Podman
-
-- name: Setup Podman config
-  shell:
-    cmd: sudo loginctl enable-linger {{ github_runner.user }}
-
-- name: Add Podman config file
-  copy:
-    src: ./containers.conf
-    dest: /etc/containers/containers.conf
-
-- name: Load new Podman config
-  shell:
-    cmd: podman system migrate
