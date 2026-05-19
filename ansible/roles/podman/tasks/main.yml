@@ -1,13 +1,38 @@
 ###### Podman
-- name: Setup Podman config
+- name: Install podman
+  apt:
+    update_cache: true
+    state: present
+    name: podman
+
+- name: enable linger for podman user
   shell:
-    cmd: sudo loginctl enable-linger {{ podman.user }}
+    cmd: sudo loginctl enable-linger {{ item.name }}
+  loop: "{{ podman.users }}"
 
 - name: Add Podman config file
   copy:
     src: ./containers.conf
     dest: /etc/containers/containers.conf
+  register: podman_config
 
 - name: Load new Podman config
   shell:
     cmd: podman system migrate
+  when: podman_config.changed
+
+- name: Configure subuid
+  lineinfile:
+    path: /etc/subuid
+    create: yes
+    line: "{{ item.name }}:{{ item.subuid_start }}:{{ item.subid_range }}"
+    regexp: "^{{ item.name }}:"
+  loop: "{{ podman.users }}"
+
+- name: Configure subgid
+  lineinfile:
+    path: /etc/subgid
+    create: yes
+    line: "{{ item.name }}:{{ item.subgid_start }}:{{ item.subid_range }}"
+    regexp: "^{{ item.name }}:"
+  loop: "{{ podman.users }}"
