@@ -1,0 +1,6 @@
+- name: Add kernel module and make sure it is loaded after reboots
+  modprobe:
+    name: "{{ item.name }}"
+    state: present
+    persistent: present
+  loop: "{{ kernel_module }}" 
