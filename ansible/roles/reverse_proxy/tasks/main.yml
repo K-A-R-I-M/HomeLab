@@ -9,7 +9,7 @@
 
 - name: Request a cert with Certbot
   shell:
-    cmd: /snap/bin/certbot --nginx -d {{ reverse_proxy.domain }} -d www.{{ reverse_proxy.domain }} --non-interactive --agree-tos -m {{ reverse_proxy.email }}
+    cmd: /snap/bin/certbot --nginx -d {{ reverse_proxy.domain }} --non-interactive --agree-tos -m {{ reverse_proxy.email }}
   when: not stat_result.stat.exists
 
 #------ NGINX conf for different paths
@@ -19,16 +19,16 @@
     state: directory
     mode: '0755'
 
-- name: Setup nginx endpoints config
-  include_tasks:
-    file: endpoint-setup-config.yml
-  loop: "{{ reverse_proxy.endpoints }}"
-
 - name: Remove existing location / block from nginx config
   replace:
     path: /etc/nginx/sites-available/default
     regexp: 'location / \{[^}]*\}'
     replace: ''
+
+- name: Setup nginx endpoints config
+  include_tasks:
+    file: endpoint-setup-config.yml
+  loop: "{{ reverse_proxy.endpoints }}"
 
 - name: Insert include endpoints into SSL server block
   blockinfile:
@@ -37,6 +37,30 @@
     insertafter: "listen 443 ssl;"
     block: |
       include /etc/nginx/conf.d/endpoints/*.conf;
+
+###################### TEST
+
+- name: Find all endpoint .conf files
+  find:
+    paths: /etc/nginx/conf.d/endpoints
+    patterns: "*.conf"
+  register: found_confs
+
+- name: Read each conf file content
+  slurp:
+    src: "{{ item.path }}"
+  loop: "{{ found_confs.files }}"
+  register: conf_contents
+
+- name: Insert content of each conf into SSL server block
+  blockinfile:
+    path: /etc/nginx/sites-available/default
+    marker: "# {mark} ANSIBLE MANAGED BLOCK for {{ item.item.path | basename }}"
+    insertafter: "listen 443 ssl;"
+    block: "{{ item.content | b64decode }}"
+  loop: "{{ conf_contents.results }}"
+
+###################### TEST
 
 - name: Check nginx config syntax
   shell: nginx -t
