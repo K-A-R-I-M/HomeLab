@@ -16,7 +16,6 @@
     dest: "{{ nextcloud.paths.bin }}/{{ item }}"
   loop: "{{ nextcloud.bins }}"
 
-
 - name: Copy systemd service
   template:
     src: nextcloud.service.j2
@@ -25,11 +24,6 @@
 - name: Start and enable systemd service
   systemd:
     name: nextcloud.service
-    state: started
+    state: restarted
     enabled: yes
     daemon_reload: true
-
-- name: Restart systemd service
-  systemd:
-    name: nextcloud.service
-    state: restarted
