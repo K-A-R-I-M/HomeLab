@@ -1,0 +1,48 @@
+- name: Copy app service
+  template:
+    src: app.service.j2
+    dest: /etc/systemd/system/{{ item.name }}.service
+
+- name: Create volume dir
+  file:
+    state: directory
+    path: "{{ container_apps.apps_dir }}/{{ item.name }}/volume"
+
+- name: Create volume dir app specific
+  file:
+    state: directory
+    path: "{{ container_apps.apps_dir }}/{{ item.name }}/volume/{{ dir }}"
+  loop: "{{ item.dirs }}"
+  loop_control:
+    loop_var: dir
+
+- name: Copy scripts
+  template:
+    src: "{{ bin_name }}"
+    dest: "{{ container_apps.apps_dir }}/{{ item.name }}/{{ bin_name }}"
+  loop: "{{ container_apps.bins }}"
+  loop_control:
+    loop_var: bin_name
+
+#============== ADD ALL ENV VARS TO ADD MANUALLY AT RUNTIME
+- name: Set systemd environment
+  shell: |
+    systemctl set-environment \
+      FTLCONF_webserver_api_password={{ ftlconf_webserver_api_password }} \
+      FTLCONF_dns_listeningMode={{ ftlconf_dns_listeningmode  }}
+
+#============== START APP
+- name: Restart app service
+  systemd:
+    name: "{{ item.name }}"
+    enabled: yes
+    state: restarted
+    daemon_reload: true
+
+#============== REMOVE ALL ENV VARS ADDED MANUALLY AT RUNTIME
+- name: Unset systemd environment
+  shell: |
+    systemctl unset-environment \
+      FTLCONF_webserver_api_password \
+      FTLCONF_dns_listeningMode
+

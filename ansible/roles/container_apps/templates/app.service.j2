@@ -1,0 +1,19 @@
+[Unit]
+Description= KARIM app  {{ item.name }}
+After=network.target
+{{ item.require }}
+
+[Service]
+User=root
+Group=root
+ExecStartPre=/bin/bash -x {{ container_apps.apps_dir }}/{{ item.name }}/prestart.sh
+ExecStart=/usr/bin/bash -x {{ container_apps.apps_dir }}/{{ item.name }}/start.sh
+ExecStop=/usr/bin/bash -x {{ container_apps.apps_dir }}/{{ item.name }}/stop.sh
+ExecStopPost=/usr/bin/bash -x {{ container_apps.apps_dir }}/{{ item.name }}/stoppost.sh
+StandardOutput=journal
+StandardError=journal
+Restart=always
+RestartSec=30
+
+[Install]
+WantedBy=default.target

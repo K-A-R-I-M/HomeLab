@@ -1,0 +1,11 @@
+- name: Create apps dir
+  file:
+    state: directory
+    path:  "{{ container_apps.apps_dir }}"
+
+- name: Configure each container apps
+  include_tasks:
+    file: app.yml
+  loop: "{{ container_apps.apps }}"
+  loop_control:
+    loop_var: item
