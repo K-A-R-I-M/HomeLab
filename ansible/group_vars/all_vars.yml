@@ -4,10 +4,34 @@ podman:
 nextcloud:
   user: "test"
   group: "test"
-  image: "nextcloud:31"
+  image: "docker.io/library/nextcloud:31"
   paths:
     data: "/nextcloud/data"
     bin: "/nextcloud/bin"
-  bins: 
+  bins:
     - "prestart.sh"
     - "start.sh"
+
+container_apps:
+  bins:
+    - start.sh
+    - prestart.sh
+    - stop.sh
+    - stoppost.sh
+  apps_dir: "/opt/container_apps"
+  apps:
+    - name: ""
+      ports: ""
+      image: ""
+      network: ""
+      network_dns: ""
+      dirs:
+        - ""
+      env: ""
+      volume: ""
+      require: ""
+      delay: ""
+      cap_add: ""
+      restart: ""
+      tls_verify: ""
+      pull: ""
